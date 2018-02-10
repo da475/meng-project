@@ -51,7 +51,7 @@ with open("myfile", "rb") as f:
 
 
 if __name__ == "__main__":
-    d = DATASET_MGR("myfile")
+    d = DATASET_MGR("train_images")
     d.load_data()
     d.print_data()
     
