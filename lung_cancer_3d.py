@@ -58,7 +58,7 @@ def deepnn(x):
   # Last dimension is for "features" - there is only one here, since images are
   # grayscale -- it would be 3 for an RGB image, 4 for RGBA, etc.
   with tf.name_scope('reshape'):
-    x_image = tf.reshape(x, [-1, 96, 512, 512, 1])
+    x_image = tf.reshape(x, [-1, 16, 28, 28, 1])
 
   # First convolutional layer - maps one grayscale image to 32 feature maps.
   with tf.name_scope('conv1'):
@@ -73,10 +73,10 @@ def deepnn(x):
   # Fully connected layer 1 -- after 2 round of downsampling, our 28x28 image
   # is down to 7x7x64 feature maps -- maps this to 1024 features.
   with tf.name_scope('fc1'):
-    W_fc1 = weight_variable([48 * 256 * 256 * 32, 1024])
+    W_fc1 = weight_variable([8 * 14 * 14 * 32, 1024])
     b_fc1 = bias_variable([1024])
 
-    h_pool2_flat = tf.reshape(h_pool1, [-1, 256 * 256 * 48 * 32])
+    h_pool2_flat = tf.reshape(h_pool1, [-1, 14 * 14 * 8 * 32])
     h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
 
   """
@@ -140,10 +140,11 @@ def main(_):
   ########### DICOM ###########
   f = pydicom.read_file('0002.DCM')
   single_image = (f.pixel_array).astype(np.float32)
+  single_image = single_image[0:16, 0:28, 0:28]
   data_array_images = np.array([single_image for i in range(0, size_dataset)])
   print (data_array_images.shape)
 
-  data_array_labels = [1,0,0,1,1,1,0,1,0,1]
+  data_array_labels = [1,0,0,1]
 
   #print (type(numpy_arr))
   #print (numpy_arr.shape)
@@ -160,7 +161,7 @@ def main(_):
   #f.close()
 
   # Create the model
-  x_val = tf.placeholder(tf.float32, [None, 96, 512, 512])
+  x_val = tf.placeholder(tf.float32, [None, 16, 28, 28])
   #x = tf.placeholder(tf.uint8, [None, 96, 512, 512])
 
   # Define loss and optimizer
