@@ -87,14 +87,13 @@ def deepnn(x):
       h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
   """
 
+  keep_prob = tf.placeholder(tf.float32)
   # Map the 1024 features to 2 classes
   with tf.name_scope('fc2'):
     W_fc2 = weight_variable([1024, 2])
     b_fc2 = bias_variable([2])
 
     y_conv = tf.matmul(h_fc1, W_fc2) + b_fc2
-
-    keep_prob = 0.5 #todo
 
   return y_conv, keep_prob
 
@@ -136,10 +135,12 @@ def main(_):
   # Import data
   #mnist = input_data.read_data_sets(FLAGS.data_dir)
 
+  size_dataset = 4
+
   ########### DICOM ###########
   f = pydicom.read_file('0002.DCM')
   single_image = (f.pixel_array).astype(np.float32)
-  data_array_images = np.array([single_image for i in range(0, 10)])
+  data_array_images = np.array([single_image for i in range(0, size_dataset)])
   print (data_array_images.shape)
 
   data_array_labels = [1,0,0,1,1,1,0,1,0,1]
@@ -159,14 +160,14 @@ def main(_):
   #f.close()
 
   # Create the model
-  x = tf.placeholder(tf.float32, [None, 96, 512, 512])
+  x_val = tf.placeholder(tf.float32, [None, 96, 512, 512])
   #x = tf.placeholder(tf.uint8, [None, 96, 512, 512])
 
   # Define loss and optimizer
   y_ = tf.placeholder(tf.int64, [None])
 
   # Build the graph for the deep net
-  y_conv, keep_prob = deepnn(x)
+  y_conv, keep_prob = deepnn(x_val)
 
   with tf.name_scope('loss'):
     cross_entropy = tf.losses.sparse_softmax_cross_entropy(
@@ -186,19 +187,19 @@ def main(_):
   train_writer = tf.summary.FileWriter(graph_location)
   train_writer.add_graph(tf.get_default_graph())
 
-  size_dataset = 10
 
   with tf.Session() as sess:
     print("before sess run")
-    #sess.run(tf.global_variables_initializer())    #todo
-    for i in range(10):
+    sess.run(tf.global_variables_initializer())    #todo
+    for i in range(size_dataset):
       print("started iter ", i)
-      batch_image = data_array_images[0 : 10]
-      batch_label = data_array_labels[0 : 10]
-      print ("x=", x.shape, " input=", batch_image.shape)
-      train_accuracy = accuracy.eval(feed_dict={x: batch_image, y_: batch_label, keep_prob: 1.0})
+      batch_image = data_array_images
+      batch_label = data_array_labels
+      print ("x=", x_val.shape, " input=", batch_image.shape)
+      input_dict = {x_val: batch_image, y_: batch_label, keep_prob: 0.5}
+      train_accuracy = accuracy.eval(feed_dict=input_dict)
       print('step %d, training accuracy %g' % (i, train_accuracy))
-      train_step.run(feed_dict={x: batch_image, y_: batch_label, keep_prob: 0.5})
+      train_step.run(feed_dict=input_dict)
 
     #print('test accuracy %g' % accuracy.eval(feed_dict={x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
 
