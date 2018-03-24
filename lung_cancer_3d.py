@@ -17,12 +17,30 @@ import argparse
 import sys
 import tempfile
 import pickle
+import pydicom
+import numpy as np
 
 from tensorflow.examples.tutorials.mnist import input_data
 
 import tensorflow as tf
 
 FLAGS = None
+"""
+  # Second convolutional layer -- maps 32 feature maps to 64.
+  with tf.name_scope('conv2'):
+    W_conv2 = weight_variable([5, 5, 32, 64])
+    b_conv2 = bias_variable([64])
+    h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)
+
+  # Second pooling layer.
+  with tf.name_scope('pool2'):
+    h_pool2 = max_pool_2x2(h_conv2)
+NOTE:
+1024 is no of neurons in fc layer, candidate for HP
+TODO:
+use macro
+use shape
+"""
 
 
 def deepnn(x):
@@ -40,48 +58,43 @@ def deepnn(x):
   # Last dimension is for "features" - there is only one here, since images are
   # grayscale -- it would be 3 for an RGB image, 4 for RGBA, etc.
   with tf.name_scope('reshape'):
-    x_image = tf.reshape(x, [-1, 28, 28, 1])
+    x_image = tf.reshape(x, [-1, 96, 512, 512, 1])
 
   # First convolutional layer - maps one grayscale image to 32 feature maps.
   with tf.name_scope('conv1'):
-    W_conv1 = weight_variable([5, 5, 1, 32])
+    W_conv1 = weight_variable([5, 5, 5, 1, 32])
     b_conv1 = bias_variable([32])
-    h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
+    h_conv1 = tf.nn.relu(conv3d(x_image, W_conv1) + b_conv1)
 
   # Pooling layer - downsamples by 2X.
   with tf.name_scope('pool1'):
-    h_pool1 = max_pool_2x2(h_conv1)
-
-  # Second convolutional layer -- maps 32 feature maps to 64.
-  with tf.name_scope('conv2'):
-    W_conv2 = weight_variable([5, 5, 32, 64])
-    b_conv2 = bias_variable([64])
-    h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)
-
-  # Second pooling layer.
-  with tf.name_scope('pool2'):
-    h_pool2 = max_pool_2x2(h_conv2)
+    h_pool1 = max_pool3d_2x2x2(h_conv1)
 
   # Fully connected layer 1 -- after 2 round of downsampling, our 28x28 image
   # is down to 7x7x64 feature maps -- maps this to 1024 features.
   with tf.name_scope('fc1'):
-    W_fc1 = weight_variable([7 * 7 * 64, 1024])
+    W_fc1 = weight_variable([48 * 256 * 256 * 32, 1024])
     b_fc1 = bias_variable([1024])
 
-    h_pool2_flat = tf.reshape(h_pool2, [-1, 7 * 7 * 64])
+    h_pool2_flat = tf.reshape(h_pool1, [-1, 256 * 256 * 48 * 32])
     h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
 
-  # Dropout - controls the complexity of the model, prevents co-adaptation of
-  # features.
-  with tf.name_scope('dropout'):
-    keep_prob = tf.placeholder(tf.float32)
-    h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
+  """
+    # Dropout - controls the complexity of the model, prevents co-adaptation of
+    # features.
+    with tf.name_scope('dropout'):
+      keep_prob = tf.placeholder(tf.float32)
+      h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
+  """
 
-  # Map the 1024 features to 10 classes, one for each digit
+  # Map the 1024 features to 2 classes
   with tf.name_scope('fc2'):
-    W_fc2 = weight_variable([1024, 10])
-    b_fc2 = bias_variable([10])
-    y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
+    W_fc2 = weight_variable([1024, 2])
+    b_fc2 = bias_variable([2])
+
+    y_conv = tf.matmul(h_fc1, W_fc2) + b_fc2
+
+    keep_prob = 0.5 #todo
 
   return y_conv, keep_prob
 
@@ -91,10 +104,20 @@ def conv2d(x, W):
   return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')
 
 
+def conv3d(x, W):
+  """conv3d returns a 3d convolution layer with full stride."""
+  return tf.nn.conv3d(x, W, strides=[1, 1, 1, 1, 1], padding='SAME')
+
+
 def max_pool_2x2(x):
   """max_pool_2x2 downsamples a feature map by 2X."""
   return tf.nn.max_pool(x, ksize=[1, 2, 2, 1],
                         strides=[1, 2, 2, 1], padding='SAME')
+
+def max_pool3d_2x2x2(x):
+  """max_pool_2x2 downsamples a feature map by 2X."""
+  return tf.nn.max_pool3d(x, ksize=[1, 2, 2, 2, 1],
+                        strides=[1, 2, 2, 2, 1], padding='SAME')
 
 
 def weight_variable(shape):
@@ -111,19 +134,33 @@ def bias_variable(shape):
 
 def main(_):
   # Import data
-  mnist = input_data.read_data_sets(FLAGS.data_dir)
+  #mnist = input_data.read_data_sets(FLAGS.data_dir)
+
+  ########### DICOM ###########
+  f = pydicom.read_file('0002.DCM')
+  single_image = (f.pixel_array).astype(np.float32)
+  data_array_images = np.array([single_image for i in range(0, 10)])
+  print (data_array_images.shape)
+
+  data_array_labels = [1,0,0,1,1,1,0,1,0,1]
+
+  #print (type(numpy_arr))
+  #print (numpy_arr.shape)
+
+
 
   # load the training dataset from the pickle file
-  f = open('dataset_labels.pkl', 'rb')
-  data_array_labels = pickle.load(f)
-  f.close()
+  #f = open('dataset_labels.pkl', 'rb')
+  #data_array_labels = pickle.load(f)
+  #f.close()
 
-  f = open('dataset_train_images.pkl', 'rb')
-  data_array_images = pickle.load(f)
-  f.close()
+  #f = open('dataset_train_images.pkl', 'rb')
+  #data_array_images = pickle.load(f)
+  #f.close()
 
   # Create the model
-  x = tf.placeholder(tf.float32, [None, 784])
+  x = tf.placeholder(tf.float32, [None, 96, 512, 512])
+  #x = tf.placeholder(tf.uint8, [None, 96, 512, 512])
 
   # Define loss and optimizer
   y_ = tf.placeholder(tf.int64, [None])
@@ -149,30 +186,29 @@ def main(_):
   train_writer = tf.summary.FileWriter(graph_location)
   train_writer.add_graph(tf.get_default_graph())
 
-  size_dataset = 60000
+  size_dataset = 10
 
   with tf.Session() as sess:
-    sess.run(tf.global_variables_initializer())
-    for i in range(20000):
-      #batch = mnist.train.next_batch(50)
-      index = (i * 50) % size_dataset
-      batch_image = data_array_images[i : i+49]
-      batch_label = data_array_labels[i : i+49]
-      if i % 100 == 0:
-        train_accuracy = accuracy.eval(feed_dict={x: batch_image, y_: batch_label, keep_prob: 1.0})
-        print('step %d, training accuracy %g' % (i, train_accuracy))
+    print("before sess run")
+    #sess.run(tf.global_variables_initializer())    #todo
+    for i in range(10):
+      print("started iter ", i)
+      batch_image = data_array_images[0 : 10]
+      batch_label = data_array_labels[0 : 10]
+      print ("x=", x.shape, " input=", batch_image.shape)
+      train_accuracy = accuracy.eval(feed_dict={x: batch_image, y_: batch_label, keep_prob: 1.0})
+      print('step %d, training accuracy %g' % (i, train_accuracy))
       train_step.run(feed_dict={x: batch_image, y_: batch_label, keep_prob: 0.5})
 
-    print('test accuracy %g' % accuracy.eval(feed_dict={
-        x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
+    #print('test accuracy %g' % accuracy.eval(feed_dict={x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
 
 if __name__ == '__main__':
-  parser = argparse.ArgumentParser()
-  parser.add_argument('--data_dir', type=str,
-                      default='/tmp/tensorflow/mnist/input_data',
-                      help='Directory for storing input data')
-  FLAGS, unparsed = parser.parse_known_args()
-  tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
+#  parser = argparse.ArgumentParser()
+#  parser.add_argument('--data_dir', type=str,
+#                      default='/tmp/tensorflow/mnist/input_data',
+#                      help='Directory for storing input data')
+#  FLAGS, unparsed = parser.parse_known_args()
+  tf.app.run(main=main, argv=[sys.argv[0]])
 
 
 
