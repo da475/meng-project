@@ -36,12 +36,25 @@ FLAGS = None
   with tf.name_scope('pool2'):
     h_pool2 = max_pool_2x2(h_conv2)
 NOTE:
-1024 is no of neurons in fc layer, candidate for HP
+FEATURES_FC_LAYER is no of neurons in fc layer, candidate for HP
 TODO:
 use macro
 use shape
 """
 
+# working numbers on mac
+
+FEATURES_1st_LAYER  = 32
+
+IMAGE_HEIGHT_HALF   = 64
+IMAGE_WIDTH_HALF    = 64
+IMAGE_SLICES_HALF   = 32
+
+IMAGE_HEIGHT        = IMAGE_HEIGHT_HALF * 2
+IMAGE_WIDTH         = IMAGE_WIDTH_HALF * 2
+IMAGE_SLICES        = IMAGE_SLICES_HALF * 2
+
+FEATURES_FC_LAYER   = 128
 
 def deepnn(x):
   """deepnn builds the graph for a deep net for classifying digits.
@@ -58,25 +71,26 @@ def deepnn(x):
   # Last dimension is for "features" - there is only one here, since images are
   # grayscale -- it would be 3 for an RGB image, 4 for RGBA, etc.
   with tf.name_scope('reshape'):
-    x_image = tf.reshape(x, [-1, 16, 28, 28, 1])
+    x_image = tf.reshape(x, [-1, IMAGE_SLICES, IMAGE_HEIGHT, IMAGE_HEIGHT, 1])
 
   # First convolutional layer - maps one grayscale image to 32 feature maps.
   with tf.name_scope('conv1'):
-    W_conv1 = weight_variable([5, 5, 5, 1, 32])
-    b_conv1 = bias_variable([32])
+    W_conv1 = weight_variable([5, 5, 5, 1, FEATURES_1st_LAYER])
+    b_conv1 = bias_variable([FEATURES_1st_LAYER])
     h_conv1 = tf.nn.relu(conv3d(x_image, W_conv1) + b_conv1)
 
   # Pooling layer - downsamples by 2X.
   with tf.name_scope('pool1'):
     h_pool1 = max_pool3d_2x2x2(h_conv1)
 
-  # Fully connected layer 1 -- after 2 round of downsampling, our 28x28 image
-  # is down to 7x7x64 feature maps -- maps this to 1024 features.
+  # Fully connected layer 1 -- after 2 round of downsampling, our IMAGE_HEIGHTxIMAGE_HEIGHT image
+  # is down to 7x7x64 feature maps -- maps this to FEATURES_FC_LAYER features.
   with tf.name_scope('fc1'):
-    W_fc1 = weight_variable([8 * 14 * 14 * 32, 1024])
-    b_fc1 = bias_variable([1024])
+    current_feat = IMAGE_SLICES_HALF * IMAGE_HEIGHT_HALF * IMAGE_WIDTH_HALF * FEATURES_1st_LAYER
+    W_fc1 = weight_variable([ current_feat, FEATURES_FC_LAYER])
+    b_fc1 = bias_variable([FEATURES_FC_LAYER])
 
-    h_pool2_flat = tf.reshape(h_pool1, [-1, 14 * 14 * 8 * 32])
+    h_pool2_flat = tf.reshape(h_pool1, [-1, current_feat])
     h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
 
   """
@@ -88,9 +102,9 @@ def deepnn(x):
   """
 
   keep_prob = tf.placeholder(tf.float32)
-  # Map the 1024 features to 2 classes
+  # Map the FEATURES_FC_LAYER features to 2 classes
   with tf.name_scope('fc2'):
-    W_fc2 = weight_variable([1024, 2])
+    W_fc2 = weight_variable([FEATURES_FC_LAYER, 2])
     b_fc2 = bias_variable([2])
 
     y_conv = tf.matmul(h_fc1, W_fc2) + b_fc2
@@ -132,24 +146,17 @@ def bias_variable(shape):
 
 
 def main(_):
-  # Import data
-  #mnist = input_data.read_data_sets(FLAGS.data_dir)
 
   size_dataset = 4
 
   ########### DICOM ###########
   f = pydicom.read_file('0002.DCM')
   single_image = (f.pixel_array).astype(np.float32)
-  single_image = single_image[0:16, 0:28, 0:28]
+  single_image = single_image[0:IMAGE_SLICES, 0:IMAGE_HEIGHT, 0:IMAGE_HEIGHT]
   data_array_images = np.array([single_image for i in range(0, size_dataset)])
   print (data_array_images.shape)
 
   data_array_labels = [1,0,0,1]
-
-  #print (type(numpy_arr))
-  #print (numpy_arr.shape)
-
-
 
   # load the training dataset from the pickle file
   #f = open('dataset_labels.pkl', 'rb')
@@ -161,8 +168,7 @@ def main(_):
   #f.close()
 
   # Create the model
-  x_val = tf.placeholder(tf.float32, [None, 16, 28, 28])
-  #x = tf.placeholder(tf.uint8, [None, 96, 512, 512])
+  x_val = tf.placeholder(tf.float32, [None, IMAGE_SLICES, IMAGE_HEIGHT, IMAGE_HEIGHT])
 
   # Define loss and optimizer
   y_ = tf.placeholder(tf.int64, [None])
@@ -190,8 +196,9 @@ def main(_):
 
 
   with tf.Session() as sess:
-    print("before sess run")
+    print("before init")
     sess.run(tf.global_variables_initializer())    #todo
+    print("after init")
     for i in range(size_dataset):
       print("started iter ", i)
       batch_image = data_array_images
@@ -205,11 +212,6 @@ def main(_):
     #print('test accuracy %g' % accuracy.eval(feed_dict={x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
 
 if __name__ == '__main__':
-#  parser = argparse.ArgumentParser()
-#  parser.add_argument('--data_dir', type=str,
-#                      default='/tmp/tensorflow/mnist/input_data',
-#                      help='Directory for storing input data')
-#  FLAGS, unparsed = parser.parse_known_args()
   tf.app.run(main=main, argv=[sys.argv[0]])
 
 
