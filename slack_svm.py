@@ -28,6 +28,10 @@ class Slack_SVM:
         self.learn_rate = LEARN_RATE
         self.weight_vec = np.random.rand(self.dimensions, 1)
 
+        # randomly assign signs to weight_vec components, just to increase randomness
+        random_signs = np.array([[pow(-1, j) for j in range(0, self.dimensions)]])
+        self.weight_vec = np.multiply(self.weight_vec, np.transpose(random_signs))
+
 
     def compute_next_iteration(self):
 
@@ -44,7 +48,10 @@ class Slack_SVM:
 
     def train(self):
 
+        num_iterations = 0
         while (1):
+
+            num_iterations += 1
 
             current_weight_vec = self.weight_vec
             self.compute_next_iteration()
@@ -54,6 +61,8 @@ class Slack_SVM:
 
             if (movement < CONVERGENCE_THRESHOLD):
                 break
+
+        print("\n Iterations before Convergence : " + str(num_iterations) + "\n")
 
 
     def test(self, test_input):
