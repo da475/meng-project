@@ -44,17 +44,17 @@ use shape
 
 # working numbers on mac
 
-FEATURES_1st_LAYER  = 32
+FEATURES_1st_LAYER  = 16
 
-IMAGE_HEIGHT_HALF   = 64
-IMAGE_WIDTH_HALF    = 64
-IMAGE_SLICES_HALF   = 32
+IMAGE_HEIGHT_HALF   = 50
+IMAGE_WIDTH_HALF    = 50
+IMAGE_SLICES_HALF   = 10
 
 IMAGE_HEIGHT        = IMAGE_HEIGHT_HALF * 2
 IMAGE_WIDTH         = IMAGE_WIDTH_HALF * 2
 IMAGE_SLICES        = IMAGE_SLICES_HALF * 2
 
-FEATURES_FC_LAYER   = 128
+FEATURES_FC_LAYER   = 1024
 
 def deepnn(x):
   """deepnn builds the graph for a deep net for classifying digits.
@@ -150,13 +150,23 @@ def main(_):
   size_dataset = 4
 
   ########### DICOM ###########
+
+  """
   f = pydicom.read_file('0002.DCM')
   single_image = (f.pixel_array).astype(np.float32)
   single_image = single_image[0:IMAGE_SLICES, 0:IMAGE_HEIGHT, 0:IMAGE_HEIGHT]
   data_array_images = np.array([single_image for i in range(0, size_dataset)])
-  print (data_array_images.shape)
+  print (data_array_images.shape, ' is the shape')
+  """
 
-  data_array_labels = [1,0,0,1]
+  data_array_images = np.load('image.npy')
+  data_array_labels = np.load('label.npy')
+  #single_image = single_image[0:IMAGE_SLICES, 0:IMAGE_HEIGHT, 0:IMAGE_HEIGHT]
+  #data_array_images = np.array([single_image for i in range(0, size_dataset)])
+  #data_array_labels = [1,0,0,1]
+  print (data_array_images.shape, ' is the shape')
+  print (data_array_labels.shape, ' is the shape')
+
 
   # load the training dataset from the pickle file
   #f = open('dataset_labels.pkl', 'rb')
