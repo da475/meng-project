@@ -19,8 +19,6 @@ class SVM_Model:
         raw_image_data = np.load(datafile_fullpath)
         raw_labels = np.load(labelfile_fullpath)
 
-        self.num_data_points = raw_image_data.shape[0]
-
         # The raw image data would be an array of 3D images
         # This needs some pre-processing and vectorization
         self.data = self.pre_process_image_data(raw_image_data)
@@ -31,25 +29,37 @@ class SVM_Model:
 
     def pre_process_image_data(self, raw_image_data):
 
-        # TODO_JK:
         # Select the middle slice and vectorize the image
-        # 
+
+        num_data_points, image_depth, image_width, image_height = raw_image_data.shape
+
+        processed_data = np.zeros((num_data_points, image_width * image_height))
+
+        for i in range(num_data_points):
+
+            raw_image = raw_image_data[i, (image_depth / 2)]
+            raw_image = np.clip(raw_image, 0, 255)
+            raw_image = raw_image / 255
+            processed_data[i] = raw_image.flatten()
+
+        return processed_data
 
 
     def pre_process_labels(self, raw_labels):
 
-        # TODO_JK:
         # SVM needs labels form the set {+1, -1}
+        # Incoming Labels are in the set {0, 1}
+        return (raw_labels * 2) - 1
 
 
     def evaluate(self, slack_coeff):
 
         # split the samples into training and testing sets
 
-        permutation = np.arange(self.num_data_points)
-        np.random.shuffle(permutation)
-
         num_data_points, data_dimensions = self.data.shape
+
+        permutation = np.arange(num_data_points)
+        np.random.shuffle(permutation)
 
         training_data_size = num_data_points * 4 / 5
         training_data = np.zeros((training_data_size, data_dimensions))
@@ -91,4 +101,11 @@ class SVM_Model:
         print("\n Testing Error : " + str(testing_error) + "/" + str(j) + "\n")
 
         return testing_error
+
+
+if __name__ == "__main__":
+
+    svm_model = SVM_Model('..')
+
+    err = svm_model.evaluate(1)
 

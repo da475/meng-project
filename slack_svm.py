@@ -1,7 +1,7 @@
 import numpy as np
 
 LEARN_RATE = 0.05
-CONVERGENCE_THRESHOLD = 0.01
+CONVERGENCE_THRESHOLD = 0.5
 
 # Expects as input
 # training_data : matrix (n x d), set of real numbers
@@ -58,6 +58,8 @@ class Slack_SVM:
 
             change = self.weight_vec - current_weight_vec
             movement = np.sqrt(np.matmul(np.transpose(change), change))
+
+            print("\n Itr: " + str(num_iterations) + " movement : " + str(movement[0, 0]))
 
             if (movement < CONVERGENCE_THRESHOLD):
                 break
