@@ -1,5 +1,7 @@
 
 import numpy as np
+import os
+import csv
 
 from slack_svm import Slack_SVM
 
@@ -29,18 +31,36 @@ class SVM_Model:
 
     def pre_process_image_data(self, raw_image_data):
 
-        # Select the middle slice and vectorize the image
-
         num_data_points, image_depth, image_width, image_height = raw_image_data.shape
 
+        # load the spiralling order from the csv file
+
+        os.system('gcc -o spiralling ./spiralling.c')
+        os.system('./spiralling ' + str(image_width) + ' > ./spiralling.csv')
+
+        contents = []
+        f = open('./spiralling.csv')
+        h = csv.reader(f)
+
+        for r in h:
+            contents.append(int(r[0]))
+
+        f.close()
+
+        # Select the middle slice and vectorize the image
+
         processed_data = np.zeros((num_data_points, image_width * image_height))
+
+        remapping = np.array(contents)
 
         for i in range(num_data_points):
 
             raw_image = raw_image_data[i, (image_depth / 2)]
             raw_image = np.clip(raw_image, 0, 255)
             raw_image = raw_image / 255
-            processed_data[i] = raw_image.flatten()
+
+            flattened = raw_image.flatten()
+            processed_data[i] = flattened[remapping]
 
         return processed_data
 
