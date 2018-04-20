@@ -147,35 +147,38 @@ def bias_variable(shape):
 
 def main(_):
 
-  size_dataset = 4
 
   ########### DICOM ###########
 
+  # this is the numpy array for data images of 4-dimensions
+  # it is of the shape: number of images, depth, height, width
+  total_images = np.load('81data_points.npy')
+
+  # this is the labels for the above data images
+  total_labels = np.load('81labels.npy')
+
+  # take 80% for training, 20% for testing
+  num_images = len(total_labels)
+  num_training_images = int(num_images * 4 / 5)
+  print ('num tr is ', num_training_images)
+
+  # divide the samples
   """
-  f = pydicom.read_file('0002.DCM')
-  single_image = (f.pixel_array).astype(np.float32)
-  single_image = single_image[0:IMAGE_SLICES, 0:IMAGE_HEIGHT, 0:IMAGE_HEIGHT]
-  data_array_images = np.array([single_image for i in range(0, size_dataset)])
-  print (data_array_images.shape, ' is the shape')
+  training_images = total_images[0 : num_training_images-1]
+  training_labels = total_labels[0 : num_training_images-1]
+  testing_images = total_images[num_training_images : num_images]
+  testing_labels = total_labels[num_training_images : num_images]
   """
 
-  data_array_images = np.load('image.npy')
-  data_array_labels = np.load('label.npy')
-  #single_image = single_image[0:IMAGE_SLICES, 0:IMAGE_HEIGHT, 0:IMAGE_HEIGHT]
-  #data_array_images = np.array([single_image for i in range(0, size_dataset)])
-  #data_array_labels = [1,0,0,1]
-  print (data_array_images.shape, ' is the shape')
-  print (data_array_labels.shape, ' is the shape')
+  training_images = total_images[0 : 10]
+  training_labels = total_labels[0 : 10]
+  testing_images = total_images[10 : 15]
+  testing_labels = total_labels[10 : 15]
 
-
-  # load the training dataset from the pickle file
-  #f = open('dataset_labels.pkl', 'rb')
-  #data_array_labels = pickle.load(f)
-  #f.close()
-
-  #f = open('dataset_train_images.pkl', 'rb')
-  #data_array_images = pickle.load(f)
-  #f.close()
+  print (training_images.shape, ' is the shape of tr images')
+  print (training_labels.shape, ' is the shape of tr labels')
+  print (testing_images.shape, ' is the shape of tst images')
+  print (testing_labels.shape, ' is the shape of tst labels')
 
   # Create the model
   x_val = tf.placeholder(tf.float32, [None, IMAGE_SLICES, IMAGE_HEIGHT, IMAGE_HEIGHT])
@@ -204,21 +207,26 @@ def main(_):
   train_writer = tf.summary.FileWriter(graph_location)
   train_writer.add_graph(tf.get_default_graph())
 
+  number_of_epochs = 100
 
   with tf.Session() as sess:
-    print("before init")
-    sess.run(tf.global_variables_initializer())    #todo
-    print("after init")
-    for i in range(size_dataset):
+    # start the training
+    sess.run(tf.global_variables_initializer())
+    print("start the training")
+    for i in range(number_of_epochs):
       print("started iter ", i)
-      batch_image = data_array_images
-      batch_label = data_array_labels
-      print ("x=", x_val.shape, " input=", batch_image.shape)
-      input_dict = {x_val: batch_image, y_: batch_label, keep_prob: 0.5}
-      train_accuracy = accuracy.eval(feed_dict=input_dict)
+      batch_image = training_images
+      batch_label = training_labels
+      #print ("x=", x_val.shape, " input=", batch_image.shape)
+      training_input = {x_val: batch_image, y_: batch_label, keep_prob: 0.5}
+      train_accuracy = accuracy.eval(feed_dict = training_input)
       print('step %d, training accuracy %g' % (i, train_accuracy))
-      train_step.run(feed_dict=input_dict)
+      train_step.run(feed_dict=training_input)
 
+    # calculate the testing accuracy
+    testing_input = {x_val: testing_images, y_: testing_labels, keep_prob: 0.8}
+    test_accuracy = accuracy.eval(feed_dict = testing_input)
+    print ('test accu is ', test_accuracy)
     #print('test accuracy %g' % accuracy.eval(feed_dict={x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
 
 if __name__ == '__main__':
