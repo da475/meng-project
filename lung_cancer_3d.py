@@ -163,7 +163,6 @@ def main(_):
   print ('num tr is ', num_training_images)
 
   # divide the samples
-  """
   training_images = total_images[0 : num_training_images-1]
   training_labels = total_labels[0 : num_training_images-1]
   testing_images = total_images[num_training_images : num_images]
@@ -174,6 +173,7 @@ def main(_):
   training_labels = total_labels[0 : 10]
   testing_images = total_images[10 : 15]
   testing_labels = total_labels[10 : 15]
+  """
 
   print (training_images.shape, ' is the shape of tr images')
   print (training_labels.shape, ' is the shape of tr labels')
@@ -207,7 +207,7 @@ def main(_):
   train_writer = tf.summary.FileWriter(graph_location)
   train_writer.add_graph(tf.get_default_graph())
 
-  number_of_epochs = 100
+  number_of_epochs = 20
 
   with tf.Session() as sess:
     # start the training
