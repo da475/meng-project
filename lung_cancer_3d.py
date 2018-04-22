@@ -150,16 +150,24 @@ def main(_):
 
   ########### DICOM ###########
 
-  # this is the numpy array for data images of 4-dimensions
-  # it is of the shape: number of images, depth, height, width
-  total_images = np.load('81data_points.npy')
+
 
   # this is the labels for the above data images
-  total_labels = np.load('81labels.npy')
+
+
+  # this is the numpy array for data images of 4-dimensions
+  # it is of the shape: number of images, depth, height, width
+  total_images = np.load('370_processed_data.npy')
+  #total_images = np.load('81data_points.npy')
+
+  # this is the labels for the above data images
+  total_labels = np.load('370_processed_labels.npy')
+  #total_labels = np.load('81labels.npy')
 
   # take 80% for training, 20% for testing
   num_images = len(total_labels)
   num_training_images = int(num_images * 4 / 5)
+  print ('num_images is ', num_images)
   print ('num tr is ', num_training_images)
 
   # divide the samples
@@ -167,8 +175,9 @@ def main(_):
   training_labels = total_labels[0 : num_training_images-1]
   testing_images = total_images[num_training_images : num_images]
   testing_labels = total_labels[num_training_images : num_images]
-  """
 
+
+  """
   training_images = total_images[0 : 10]
   training_labels = total_labels[0 : 10]
   testing_images = total_images[10 : 15]
@@ -207,17 +216,22 @@ def main(_):
   train_writer = tf.summary.FileWriter(graph_location)
   train_writer.add_graph(tf.get_default_graph())
 
-  number_of_epochs = 20
+  index = 0
+  number_of_epochs = 200
+  batch_size = int(num_training_images / 10)
+  
 
   with tf.Session() as sess:
     # start the training
     sess.run(tf.global_variables_initializer())
     print("start the training")
     for i in range(number_of_epochs):
-      print("started iter ", i)
-      batch_image = training_images
-      batch_label = training_labels
-      #print ("x=", x_val.shape, " input=", batch_image.shape)
+      index = i % 10
+      index = index * batch_size
+      print("started iter {} with index {} and type {}".format(i, index, type(index)))
+      batch_image = training_images[index : index + batch_size]
+      batch_label = training_labels[index : index + batch_size]
+      print ("x=", x_val.shape, " input=", batch_image.shape)
       training_input = {x_val: batch_image, y_: batch_label, keep_prob: 0.5}
       train_accuracy = accuracy.eval(feed_dict = training_input)
       print('step %d, training accuracy %g' % (i, train_accuracy))
