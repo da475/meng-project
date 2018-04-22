@@ -17,21 +17,17 @@ Func = 5 -> Shifted Rotated Ackley
 import numpy as np
 from Traditional_PSO import Traditional_PSO
 
+"""
+Sequence of parameters to be optimized:
+    LearningRate, Slack_Coeff, ConvergenceThresh
+"""
+
 if __name__ == "__main__":
-    Population = 50
-    num_variables = 2
-    Iterations = 2000
-    Data = np.zeros((5, 2))
-    Mean = np.zeros(5)
-    Std = np.zeros(5)
+    Population = 20
+    num_variables = 3
+    Iterations = 100
 
-    for i in range(1, 6):
-        Func = i;
-        print("Function" + str(i))
-
-        for k in range(0, 2):
-            Data[i, k] = Traditional_PSO(Func, Population, num_variables, Iterations)
+    GlobalBest, GlobalPos = Traditional_PSO(Population, num_variables, Iterations)
         
-        Mean[i] = np.mean(Data[i, :])
-        Std[i] = np.std(Data[i, :])
+    print("\n GlobalBest : " + str(GlobalBest) +  " GlobalPos : " + str(GlobalPos) + "\n")
 

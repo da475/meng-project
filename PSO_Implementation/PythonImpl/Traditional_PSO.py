@@ -7,7 +7,7 @@ Meng Project
 
 import numpy as np
 import random
-from cost_function import cost_function
+from svm_model import SVM_Model
 
 class Particle():
     def __init__(self, pos, number_of_variables):
@@ -17,27 +17,35 @@ class Particle():
         self.velocity = np.zeros(number_of_variables)
 
 # PSO
-def Traditional_PSO(Func, Population, number_of_variables, Iterations):
+def Traditional_PSO(Population, number_of_variables, Iterations):
 
     # Upper and lower bounds of the function chosen
-    Lower_Bound, Upper_Bound, cost = cost_function(np.zeros(number_of_variables), number_of_variables, Func)
- 
+    Lower_Bound = np.array([0.01, 0.1, 0.5])
+
+    Upper_Bound = np.array([0.5, 100, 5])
+
     # Setting Upper and Lower Bounds for position and velocity vector
     Bounds_p = np.array([Lower_Bound, Upper_Bound])
+
+    # TODO check this
     Bounds_v = np.array([-(Bounds_p[1]-Bounds_p[0]), Bounds_p[1]-Bounds_p[0]])
     Global_best_cost = float('inf')        # The initial best cost
     Global_best_position = float('inf')    # Initial best position
  
     Particles = []
-    random_vec = np.array([random.random() for i in range(number_of_variables)])
 
     for i in range(0, Population):
+
+        # TODO : we need separate random seeds for each of the components of the Position
+        random_vec = np.array([random.random() for ii in range(number_of_variables)])
+
         # Setting initial position of each particle within the bounds of Func
-        Particles.append(Particle(Bounds_p[0] + 2 *Bounds_p[1] * random_vec, number_of_variables))
+        Particles.append(Particle(Bounds_p[0] + np.multiply((Bounds_p[1] - Bounds_p[0]), random_vec), number_of_variables))
         # Best position of each particle is its current initial position
 
         # Obtaining best cost of each particle
-        discard1, discard2, Particles[i].best_cost = cost_function(Particles[i].position, number_of_variables, Func)
+        svm_model = SVM_Model('../../../')
+        Particles[i].best_cost = svm_model.evaluate(Particles[i].position[0], Particles[i].position[1], Particles[i].position[2])
 
         # If best cost of each particle is less than the global cost set
         # global cost
@@ -69,23 +77,24 @@ def Traditional_PSO(Func, Population, number_of_variables, Iterations):
 
             # If particle velocity exceeds bounds it is set to bounds
             for j in range(0, number_of_variables):
-                if Particles[i].velocity[j] > Bounds_v[1]:
-                   Particles[i].velocity[j] = Bounds_v[1]
-                elif Particles[i].velocity[j] < Bounds_v[0]:
-                   Particles[i].velocity[j] = Bounds_v[0]
+                if Particles[i].velocity[j] > Bounds_v[1, j]:
+                   Particles[i].velocity[j] = Bounds_v[1, j]
+                elif Particles[i].velocity[j] < Bounds_v[0, j]:
+                   Particles[i].velocity[j] = Bounds_v[0, j]
  
             # Equation for particle position
             Particles[i].position = Particles[i].position + Particles[i].velocity
             
             # If particle position exceeds bounds it is set to bounds
             for j in range(0, number_of_variables):
-                if Particles[i].position[j] > Bounds_p[1]:
-                   Particles[i].position[j] = Bounds_p[1]
-                elif Particles[i].position[j] < Bounds_p[0]:
-                   Particles[i].position[j] = Bounds_p[0]
+                if Particles[i].position[j] > Bounds_p[1, j]:
+                   Particles[i].position[j] = Bounds_p[1, j]
+                elif Particles[i].position[j] < Bounds_p[0, j]:
+                   Particles[i].position[j] = Bounds_p[0, j]
 
             # Finding temporary cost of the particle
-            discard1, discard2, Temp_cost = cost_function(Particles[i].position, number_of_variables, Func)
+            svm_model = SVM_Model('../../../')
+            Temp_cost = svm_model.evaluate(Particles[i].position[0], Particles[i].position[1], Particles[i].position[2])
             
             # If temporary cost is less than particle best cost
             if Temp_cost < Particles[i].best_cost:
@@ -99,9 +108,12 @@ def Traditional_PSO(Func, Population, number_of_variables, Iterations):
         
         # Tracking global cost
         Total[count] = Global_best_cost
-        
+       
+        # Debug Info
+        print("\n PSO's Iteration Count : " + str(count) + "\n")
+
         # Incrementing iterations 
         count = count + 1
         
-    return Global_best_cost
+    return Global_best_cost, Global_best_position
  
