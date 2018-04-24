@@ -22,7 +22,7 @@ import numpy as np
 import gc
 
 from tensorflow.examples.tutorials.mnist import input_data
-
+from random import shuffle
 import tensorflow as tf
 
 FLAGS = None
@@ -53,7 +53,18 @@ IMAGE_HEIGHT        = IMAGE_HEIGHT_HALF * 2
 IMAGE_WIDTH         = IMAGE_WIDTH_HALF * 2
 IMAGE_SLICES        = IMAGE_SLICES_HALF * 2
 
-debug_print = 0
+IMAGE_HEIGHT_QUATER = 25
+IMAGE_WIDTH_QUATER = 25
+IMAGE_SLICES_QUATER = 5
+
+debug_print = 1
+
+def shuffle_in_unison(a, b):
+  cur_state = np.random.get_state()
+  np.random.shuffle(a)
+  np.random.set_state(cur_state)
+  np.random.shuffle(b)
+  return a, b
 
 def deepnn(x, position):
   """deepnn builds the graph for a deep net for classifying digits.
@@ -95,14 +106,25 @@ def deepnn(x, position):
   with tf.name_scope('pool1'):
     h_pool1 = max_pool3d_2x2x2(h_conv1)
 
+  #Second convolutional layer
+  with tf.name_scope('conv2'):
+    FEATURES_2nd_LAYER = FEATURES_1st_LAYER
+    W_conv2 = weight_variable([5,5,5,FEATURES_1st_LAYER, FEATURES_2nd_LAYER])
+    b_conv2 = bias_variable([FEATURES_2nd_LAYER])
+    h_conv2 = tf.nn.relu(conv3d(h_pool1, W_conv2)+b_conv2)
+
+  #Second Pooling layer
+  with tf.name_scope('pool2'):
+    h_pool2 = max_pool3d_2x2x2(h_conv2)
+
   # Fully connected layer 1 -- after 2 round of downsampling, our IMAGE_HEIGHTxIMAGE_HEIGHT image
   # is down to 7x7x64 feature maps -- maps this to FEATURES_FC_LAYER features.
   with tf.name_scope('fc1'):
-    current_feat = IMAGE_SLICES_HALF * IMAGE_HEIGHT_HALF * IMAGE_WIDTH_HALF * FEATURES_1st_LAYER
+    current_feat = IMAGE_SLICES_QUATER * IMAGE_HEIGHT_QUATER * IMAGE_WIDTH_QUATER * FEATURES_2nd_LAYER
     W_fc1 = weight_variable([ current_feat, FEATURES_FC_LAYER])
     b_fc1 = bias_variable([FEATURES_FC_LAYER])
 
-    h_pool2_flat = tf.reshape(h_pool1, [-1, current_feat])
+    h_pool2_flat = tf.reshape(h_pool2, [-1, current_feat])
     h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
 
   """
@@ -167,11 +189,12 @@ def run_cnn(position):
   # this is the numpy array for data images of 4-dimensions
   # it is of the shape: number of images, depth, height, width
   total_images = np.load('370_processed_data.npy')
-  #total_images = np.load('81data_points.npy')
-
+ 
   # this is the labels for the above data images
   total_labels = np.load('370_processed_labels.npy')
-  #total_labels = np.load('81labels.npy')
+
+  # shuffle
+  total_images, total_labels = shuffle_in_unison(total_images, total_labels)
 
   # take 80% for training, 20% for testing
   num_images = len(total_labels)
@@ -232,10 +255,10 @@ def run_cnn(position):
     for i in range(number_of_epochs):
       index = i % 10
       index = index * batch_size
-      if debug_print: print("started iter {} with index {} and type {}".format(i, index, type(index)))
+      if debug_print: print("started iter {} with index {}".format(i, index))
       batch_image = training_images[index : index + batch_size]
       batch_label = training_labels[index : index + batch_size]
-      if debug_print: print ("x=", x_val.shape, " input=", batch_image.shape)
+      #if debug_print: print ("x=", x_val.shape, " input=", batch_image.shape)
       training_input = {x_val: batch_image, y_: batch_label, keep_prob: 0.5}
       train_accuracy = accuracy.eval(feed_dict = training_input)
       if debug_print: print('step %d, training accuracy %g' % (i, train_accuracy))
@@ -261,8 +284,8 @@ if __name__ == '__main__':
 
   pos = [features_conv_layers, features_fc_layers, learning_rate]
 
-  for i in range(10):
-    print ('iter is >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', i)
+  for i in range(2):
+    print ('\niter is >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', i)
     accu = main_cnn(pos)
     print ('iter is >>>>>>>>>>>>>>> is finished, accu is ', accu)
 
