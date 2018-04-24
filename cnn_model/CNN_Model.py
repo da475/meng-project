@@ -57,7 +57,7 @@ IMAGE_HEIGHT_QUATER = 25
 IMAGE_WIDTH_QUATER = 25
 IMAGE_SLICES_QUATER = 5
 
-debug_print = 1
+debug_print = 0
 
 def shuffle_in_unison(a, b):
   cur_state = np.random.get_state()
@@ -245,7 +245,8 @@ def run_cnn(position):
 
   index = 0
   number_of_epochs = 50
-  batch_size = int(num_training_images / 10)
+  number_of_batches = 10
+  batch_size = int(num_training_images / number_of_batches)
   
 
   with tf.Session() as sess:
@@ -253,9 +254,15 @@ def run_cnn(position):
     sess.run(tf.global_variables_initializer())
     if debug_print: print("start the training")
     for i in range(number_of_epochs):
-      index = i % 10
+      index = i % number_of_batches
       index = index * batch_size
       if debug_print: print("started iter {} with index {}".format(i, index))
+
+
+      # when one epoch is finished, shuffle the training dataset
+      if i % number_of_batches == 0:
+        training_images, training_labels = shuffle_in_unison(training_images, training_labels)
+
       batch_image = training_images[index : index + batch_size]
       batch_label = training_labels[index : index + batch_size]
       #if debug_print: print ("x=", x_val.shape, " input=", batch_image.shape)
