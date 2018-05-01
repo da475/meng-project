@@ -275,7 +275,7 @@ def run_cnn(position):
     testing_input = {x_val: testing_images, y_: testing_labels, keep_prob: 0.8}
     test_accuracy = accuracy.eval(feed_dict = testing_input)
     print ('test accu is ', test_accuracy)
-    return test_accuracy
+    return (1 - test_accuracy)
 
 def main_cnn(pos):
     print ('running the PSO for vector : ', pos)
