@@ -36,32 +36,33 @@ class SVM_Model:
 
         # load the spiralling order from the csv file
 
-        os.system('gcc -o spiralling ./spiralling.c')
-        os.system('./spiralling ' + str(image_width) + ' > ./spiralling.csv')
+        #os.system('gcc -o spiralling ./spiralling.c')
+        #os.system('./spiralling ' + str(image_width) + ' > ./spiralling.csv')
 
-        contents = []
-        f = open('./spiralling.csv')
-        h = csv.reader(f)
+        #contents = []
+        #f = open('./spiralling.csv')
+        #h = csv.reader(f)
 
-        for r in h:
-            contents.append(int(r[0]))
+        #for r in h:
+            #contents.append(int(r[0]))
 
-        f.close()
+        #f.close()
 
         # Select the middle slice and vectorize the image
 
         processed_data = np.zeros((num_data_points, image_width * image_height))
 
-        remapping = np.array(contents)
+        #remapping = np.array(contents)
 
         for i in range(num_data_points):
 
             raw_image = raw_image_data[i, (image_depth / 2)]
-            raw_image = np.clip(raw_image, 0, 255)
-            raw_image = raw_image / 255
+            #raw_image = np.clip(raw_image, 0, 255)
+            #raw_image = raw_image / 255
 
             flattened = raw_image.flatten()
-            processed_data[i] = flattened[remapping]
+            #processed_data[i] = flattened[remapping]
+            processed_data[i] = flattened
 
         return processed_data
 
