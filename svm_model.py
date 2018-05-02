@@ -1,6 +1,7 @@
 
 import numpy as np
 import os
+import sys
 import csv
 
 from slack_svm import Slack_SVM
@@ -72,7 +73,7 @@ class SVM_Model:
         return (raw_labels * 2) - 1
 
 
-    def evaluate(self, slack_coeff):
+    def evaluate(self, learn_rate, slack_coeff, convg_thresh):
 
         # split the samples into training and testing sets
 
@@ -105,7 +106,7 @@ class SVM_Model:
 
         # Create and Train the model
 
-        svm = Slack_SVM(slack_coeff, training_data, training_labels)
+        svm = Slack_SVM(learn_rate, slack_coeff, convg_thresh, training_data, training_labels)
 
         svm.train()
 
@@ -118,14 +119,20 @@ class SVM_Model:
             if (result != testing_labels[i]):
                 testing_error += 1
 
-        print("\n Testing Error : " + str(testing_error) + "/" + str(j) + "\n")
+        #print("\n Testing Error : " + str(testing_error) + "/" + str(j) + "\n")
 
-        return testing_error
+        return (float(testing_error) / float(j))
 
 
 if __name__ == "__main__":
 
+    p1 = float(sys.argv[1])
+    p2 = float(sys.argv[2])
+    p3 = float(sys.argv[3])
+
     svm_model = SVM_Model('..')
 
-    err = svm_model.evaluate(1)
+    err = svm_model.evaluate(p1, p2, p3)
+
+    print err
 

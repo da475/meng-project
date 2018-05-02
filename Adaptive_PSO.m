@@ -3,13 +3,14 @@
 % Pavel Berezovsky
 % Meng Project
 %% PSO 
-function [count,nc,Cluster,Particle_s1] = Adaptive_PSO(Func,Population,number_of_variables,Iterations)
+function [count,nc,Cluster,Particle_s1] = Adaptive_PSO(Population,number_of_variables,Iterations)
     % Upper and lower bounds of the function chosen
-    [Lower_Bound, Upper_Bound, ~] = cost_function(zeros(1,number_of_variables),number_of_variables,Func);
- 
+    Lower_Bound = [0.01, 0.1, 0.5]
+	Upper_Bound = [0.5, 100, 5]
+
     % Setting Upper and Lower Bounds for position and velocity vector
     
-    Bounds_p = [Lower_Bound+zeros(1,number_of_variables); Upper_Bound+zeros(1,number_of_variables)];
+    Bounds_p = [Lower_Bound; Upper_Bound];
     Bounds_v = [-(Bounds_p(2,:)-Bounds_p(1,:)); Bounds_p(2,:)-Bounds_p(1,:)];
     Global_s1.best_cost = inf; % The initial best cost
     Global_s1.best_position = inf; % Initial best position
@@ -32,7 +33,7 @@ function [count,nc,Cluster,Particle_s1] = Adaptive_PSO(Func,Population,number_of
         % Best position of each particle is its current initial position
         Particle_s1(i).best_position = Particle_s1(i).position; 
         % Obtaining best cost of each particle
-        [~,~,Particle_s1(i).best_cost]= cost_function(Particle_s1(i).position,number_of_variables,Func); 
+        Particle_s1(i).best_cost = cost_function(Particle_s1(i).position); 
         if(S1_best_it(1) > Particle_s1(i).best_cost)
             S1_best_it(1) = Particle_s1(i).best_cost;
         end
@@ -52,7 +53,7 @@ function [count,nc,Cluster,Particle_s1] = Adaptive_PSO(Func,Population,number_of
         % Best position of each particle is its current initial position
         Particle_s2(i).best_position = Particle_s2(i).position; 
         % Obtaining best cost of each particle
-        [~,~,Particle_s2(i).best_cost]= cost_function(Particle_s2(i).position,number_of_variables,Func); 
+        Particle_s2(i).best_cost = cost_function(Particle_s2(i).position); 
         
         if(S2_best_it(1) > Particle_s2(i).best_cost)
             S2_best_it(1) = Particle_s2(i).best_cost;
@@ -99,8 +100,8 @@ function [count,nc,Cluster,Particle_s1] = Adaptive_PSO(Func,Population,number_of
                             test_particle1 = test_particle2;
                             test_particle1(j) = Particle_s1(test_particle1_num).best_position(j);
                         end
-                        [~,~,particle1_cost] = cost_function(test_particle1,number_of_variables,Func);
-                        [~,~,particle2_cost] = cost_function(test_particle2,number_of_variables,Func);
+                        particle1_cost = cost_function(test_particle1);
+                        particle2_cost = cost_function(test_particle2);
                         if(particle1_cost < particle2_cost)
                             temp_pbest(j) = test_particle1(j);
                         else
@@ -125,7 +126,7 @@ function [count,nc,Cluster,Particle_s1] = Adaptive_PSO(Func,Population,number_of
                 Particle_s1(i).position(D_Bounds_Check) = Bounds_p(1,D_Bounds_Check);
          
                 % Finding temporary cost of the particle
-                [~,~,Temp_cost] = cost_function(Particle_s1(i).position,number_of_variables,Func);
+                Temp_cost = cost_function(Particle_s1(i).position);
                 if(S1_best_it(count) > Temp_cost)
                     S1_best_it(count) = Temp_cost;
                 end
@@ -167,8 +168,8 @@ function [count,nc,Cluster,Particle_s1] = Adaptive_PSO(Func,Population,number_of
                 gradient = zeros(1,number_of_variables);
                 e = eye(number_of_variables);
                 for j = 1:number_of_variables
-                    [~,~,Temp_cost1] = cost_function(Particle_s2(i).position+ck*e(j,:),number_of_variables,Func);
-                    [~,~,Temp_cost2] = cost_function(Particle_s2(i).position-ck*e(j,:),number_of_variables,Func);
+                    Temp_cost1 = cost_function(Particle_s2(i).position+ck*e(j,:));
+                    Temp_cost2 = cost_function(Particle_s2(i).position-ck*e(j,:));
                     gradient(j) = (Temp_cost1-Temp_cost2)/(2*ck);
                 end
                 Particle_s2(i).prevposition = Particle_s2(i).position;
@@ -181,7 +182,7 @@ function [count,nc,Cluster,Particle_s1] = Adaptive_PSO(Func,Population,number_of
                 Particle_s2(i).position(D_Bounds_Check) = Bounds_p(1,D_Bounds_Check);
          
                 % Finding temporary cost of the particle
-                [~,~,Temp_cost] = cost_function(Particle_s2(i).position,number_of_variables,Func);
+                Temp_cost = cost_function(Particle_s2(i).position);
                 if(S2_best_it(count) > Temp_cost)
                     S2_best_it(count) = Temp_cost;
                 end
@@ -230,7 +231,7 @@ function [count,nc,Cluster,Particle_s1] = Adaptive_PSO(Func,Population,number_of
                 Particle_s1(q1).position = Particle_s1(S1_best.member).position+.1*rand(1,number_of_variables).*(Bounds_p(2,:)-Bounds_p(1,:));
                 Particle_s1(q1).velocity = zeros(1,number_of_variables);
                 Particle_s1(q1).best_position = Particle_s1(q1).position;
-                [~,~,Particle_s1(q1).best_cost]= cost_function(Particle_s1(q1).position,number_of_variables,Func); 
+                Particle_s1(q1).best_cost = cost_function(Particle_s1(q1).position); 
                 S2_worst.value = -inf;S1_worst.value = -inf;S1_best.value = inf;S2_best.value = inf;
             else
                 q1 = q1-1;
@@ -241,7 +242,7 @@ function [count,nc,Cluster,Particle_s1] = Adaptive_PSO(Func,Population,number_of
                 Particle_s2(q2).position = Particle_s2(S2_best.member).position+.1*rand(1,number_of_variables).*(Bounds_p(2,:)-Bounds_p(1,:));
                 Particle_s2(q2).prevposition = zeros(1,number_of_variables);
                 Particle_s2(q2).best_position = Particle_s2(q2).position;
-                [~,~,Particle_s2(q2).best_cost]= cost_function(Particle_s2(q2).position,number_of_variables,Func); 
+                Particle_s2(q2).best_cost = cost_function(Particle_s2(q2).position); 
                 S2_worst.value = -inf;S1_worst.value = -inf;S1_best.value = inf;S2_best.value = inf;
             end
             if(q1 <= 2) 
@@ -275,8 +276,14 @@ function [count,nc,Cluster,Particle_s1] = Adaptive_PSO(Func,Population,number_of
     % Calling ISODATA Algorithm
     Cluster =ISODATA_new(Particle_s1,Cluster,Cluster_num,Cluster_min_memb,Cluster_max_std,Cluster_min_dis,number_of_variables,Desired_cluster);     
     nc = length(Cluster(:,1));
+
+	% FUNCTIONS EVALUATION CALLS
+	function cost = cost_function(V) %Write your function in matrix form
+		cmd = num2str(V);
+		cmd = ['python svm_model.py ' cmd];
+		[~, result] = system(cmd);
+		cost = str2num(result);
+	end
+
 end
-    
-    
-    
     

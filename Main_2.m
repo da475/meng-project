@@ -22,7 +22,7 @@ num_variables = 3;
 Iterations = 20000;
 
 % Calling ISODATA Algorithm
-[Generations_needed, number_of_clusters, Cluster, Particle] = ISODATA_PSO(Population, num_variables, Iterations);
+[Generations_needed, number_of_clusters, Cluster, Particle] = Adaptive_PSO(Population, num_variables, Iterations);
 
 Generations_needed
 number_of_clusters

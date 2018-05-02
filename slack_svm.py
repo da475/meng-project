@@ -2,6 +2,7 @@ import numpy as np
 
 LEARN_RATE = 0.05
 CONVERGENCE_THRESHOLD = 0.5
+MAX_ITER = 2000
 
 # Expects as input
 # training_data : matrix (n x d), set of real numbers
@@ -11,7 +12,10 @@ CONVERGENCE_THRESHOLD = 0.5
 
 class Slack_SVM:
     
-    def __init__(self, slack_coeff, training_data, training_labels):
+    def __init__(self, learn_rate, slack_coeff, convg_thresh, training_data, training_labels):
+
+        # Debug
+        #print("\n Creating SVM Model with the params : " + str(learn_rate) + ", " + str(slack_coeff) + ", " + str(convg_thresh) + "\n")
 
         # convert the data points in the input training_data
         # to homogeneous coordinates
@@ -25,7 +29,8 @@ class Slack_SVM:
         self.data_matrix = np.multiply(self.data_matrix, np.matmul(training_labels, np.ones((1, self.dimensions))))
 
         self.slack_coeff = slack_coeff
-        self.learn_rate = LEARN_RATE
+        self.learn_rate = learn_rate
+        self.convg_thresh = convg_thresh
         self.weight_vec = np.random.rand(self.dimensions, 1)
 
         # randomly assign signs to weight_vec components, just to increase randomness
@@ -49,7 +54,7 @@ class Slack_SVM:
     def train(self):
 
         num_iterations = 0
-        while (1):
+        while (num_iterations < MAX_ITER):
 
             num_iterations += 1
 
@@ -59,12 +64,12 @@ class Slack_SVM:
             change = self.weight_vec - current_weight_vec
             movement = np.sqrt(np.matmul(np.transpose(change), change))
 
-            print("\n Itr: " + str(num_iterations) + " movement : " + str(movement[0, 0]))
+            #print("\n Itr: " + str(num_iterations) + " movement : " + str(movement[0, 0]))
 
-            if (movement < CONVERGENCE_THRESHOLD):
+            if (movement < self.convg_thresh):
                 break
 
-        print("\n Iterations before Convergence : " + str(num_iterations) + "\n")
+        #print("\n Iterations before Convergence : " + str(num_iterations) + "\n")
 
 
     def test(self, test_input):
