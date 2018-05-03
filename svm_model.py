@@ -15,8 +15,8 @@ class SVM_Model:
         if datafiles_path == "":
             datafiles_path = "."
 
-        datafile_fullpath = datafiles_path + "/processed_for_svm.npy"
-        labelfile_fullpath = datafiles_path + "/processed_data_label.npy"
+        datafile_fullpath = datafiles_path + "/processed_for_svm_data.npy"
+        labelfile_fullpath = datafiles_path + "/processed_for_svm_labels.npy"
 
         # load the image data and labels and pre-process them
         raw_image_data = np.load(datafile_fullpath)
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     p2 = float(sys.argv[2])
     p3 = float(sys.argv[3])
 
-    svm_model = SVM_Model('..')
+    svm_model = SVM_Model('.')
 
     err = svm_model.evaluate(p1, p2, p3)
 
