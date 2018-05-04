@@ -25,9 +25,10 @@ Sequence of parameters to be optimized:
 if __name__ == "__main__":
     Population = 20
     num_variables = 3
-    Iterations = 100
+    Iterations = 150
 
-    GlobalBest, GlobalPos = Traditional_PSO(Population, num_variables, Iterations)
-        
+    GlobalBest, GlobalPos, Total = Traditional_PSO(Population, num_variables, Iterations)
     print("\n GlobalBest : " + str(GlobalBest) +  " GlobalPos : " + str(GlobalPos) + "\n")
+    print ("\n\n\n\n\n")
+    print (Total)
 
