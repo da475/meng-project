@@ -126,5 +126,5 @@ def Traditional_PSO(Population, number_of_variables, Iterations):
         # Incrementing iterations 
         count = count + 1
         
-    return Global_best_cost, Global_best_position
+    return Global_best_cost, Global_best_position, Total
  

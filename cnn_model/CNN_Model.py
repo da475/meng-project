@@ -185,13 +185,27 @@ def run_cnn(position):
   ########### DICOM ###########
 
   # this is the labels for the above data images
-
   # this is the numpy array for data images of 4-dimensions
   # it is of the shape: number of images, depth, height, width
-  total_images = np.load('370_processed_data.npy')
+  total_images_orig = np.load('600_normalized_data.npy')
  
   # this is the labels for the above data images
-  total_labels = np.load('370_processed_labels.npy')
+  total_labels_orig = np.load('600_normalized_labels.npy')
+
+  # todo taking 400 out of 600
+  total_images = total_images_orig[:399]
+  total_labels = total_labels_orig[:399]
+
+  """
+  with np.load('600_normalized_data.npy') as total_images_orig:
+    # todo taking 400 out of 600
+    total_images = total_images_orig[:399]
+
+  with np.load('600_normalized_labels.npy') as total_labels_orig:
+    # todo taking 400 out of 600
+    total_labels = total_labels_orig[:399]
+
+  """
 
   # shuffle
   total_images, total_labels = shuffle_in_unison(total_images, total_labels)
@@ -208,12 +222,10 @@ def run_cnn(position):
   testing_images = total_images[num_training_images : num_images]
   testing_labels = total_labels[num_training_images : num_images]
 
-  """
-  print (training_images.shape, ' is the shape of tr images')
-  print (training_labels.shape, ' is the shape of tr labels')
-  print (testing_images.shape, ' is the shape of tst images')
-  print (testing_labels.shape, ' is the shape of tst labels')
-  """
+  #print (training_images.shape, ' is the shape of tr images')
+  #print (training_labels.shape, ' is the shape of tr labels')
+  #print (testing_images.shape, ' is the shape of tst images')
+  #print (testing_labels.shape, ' is the shape of tst labels')
 
   # Create the model
   x_val = tf.placeholder(tf.float32, [None, IMAGE_SLICES, IMAGE_HEIGHT, IMAGE_HEIGHT])
@@ -244,7 +256,7 @@ def run_cnn(position):
   train_writer.add_graph(tf.get_default_graph())
 
   index = 0
-  number_of_epochs = 50
+  number_of_epochs = 10
   number_of_batches = 10
   batch_size = int(num_training_images / number_of_batches)
   
@@ -253,7 +265,7 @@ def run_cnn(position):
     # start the training
     sess.run(tf.global_variables_initializer())
     if debug_print: print("start the training")
-    for i in range(number_of_epochs):
+    for i in range(number_of_epochs * number_of_batches):
       index = i % number_of_batches
       index = index * batch_size
       if debug_print: print("started iter {} with index {}".format(i, index))
@@ -289,12 +301,14 @@ if __name__ == '__main__':
   features_fc_layers = 1024
   learning_rate = 0.01
 
+  #pos = int(argv)
+
   pos = [features_conv_layers, features_fc_layers, learning_rate]
 
   for i in range(2):
-    print ('\niter is >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', i)
+    #print ('\niter is >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', i)
     accu = main_cnn(pos)
-    print ('iter is >>>>>>>>>>>>>>> is finished, accu is ', accu)
+    print ('iter is >>>>>>>>>>>>>>> is finished, error is ', accu)
 
 
 
