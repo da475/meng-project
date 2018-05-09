@@ -81,7 +81,7 @@ class SVM_Model:
         num_data_points, data_dimensions = self.data.shape
 
         permutation = np.arange(num_data_points)
-        np.random.shuffle(permutation)
+        #np.random.shuffle(permutation)
 
         training_data_size = num_data_points * 4 / 5
         training_data = np.zeros((training_data_size, data_dimensions))
