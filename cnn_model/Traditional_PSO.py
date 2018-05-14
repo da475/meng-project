@@ -7,7 +7,7 @@ Meng Project
 
 import numpy as np
 import random
-from CNN_Model import main_cnn
+from CNN_Model import ModelCreator
 
 class Particle():
     def __init__(self, pos, number_of_variables):
@@ -51,7 +51,8 @@ def Traditional_PSO(Population, number_of_variables, Iterations):
         # Best position of each particle is its current initial position
 
         # Obtaining best cost of each particle
-        Particles[i].best_cost = main_cnn(Particles[i].position)
+        cnnModel = ModelCreator(Particles[i].position)
+        Particles[i].best_cost = cnnModel.execute()
         #Particles[i].best_cost = svm_model.evaluate(Particles[i].position[0], Particles[i].position[1], Particles[i].position[2])
 
         # If best cost of each particle is less than the global cost set
@@ -105,7 +106,8 @@ def Traditional_PSO(Population, number_of_variables, Iterations):
 
             # Finding temporary cost of the particle
             #Temp_cost = svm_model.evaluate(Particles[i].position[0], Particles[i].position[1], Particles[i].position[2])
-            Temp_cost = main_cnn(Particles[i].position)
+            cnnModel = ModelCreator(Particles[i].position)
+            Temp_cost = cnnModel.execute()
             
             # If temporary cost is less than particle best cost
             if Temp_cost < Particles[i].best_cost:

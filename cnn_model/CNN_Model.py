@@ -179,36 +179,13 @@ def bias_variable(shape):
   return tf.Variable(initial)
 
 
-def run_cnn(position):
-
+def run_cnn(position, total_images, total_labels):
 
   ########### DICOM ###########
 
   # this is the labels for the above data images
   # this is the numpy array for data images of 4-dimensions
   # it is of the shape: number of images, depth, height, width
-  total_images_orig = np.load('600_normalized_data.npy')
- 
-  # this is the labels for the above data images
-  total_labels_orig = np.load('600_normalized_labels.npy')
-
-  # todo taking 400 out of 600
-  total_images = total_images_orig[:399]
-  total_labels = total_labels_orig[:399]
-
-  """
-  with np.load('600_normalized_data.npy') as total_images_orig:
-    # todo taking 400 out of 600
-    total_images = total_images_orig[:399]
-
-  with np.load('600_normalized_labels.npy') as total_labels_orig:
-    # todo taking 400 out of 600
-    total_labels = total_labels_orig[:399]
-
-  """
-
-  # shuffle
-  total_images, total_labels = shuffle_in_unison(total_images, total_labels)
 
   # take 80% for training, 20% for testing
   num_images = len(total_labels)
@@ -289,12 +266,47 @@ def run_cnn(position):
     print ('test accu is ', test_accuracy)
     return (1 - test_accuracy)
 
-def main_cnn(pos):
-    print ('running the PSO for vector : ', pos)
-    acc = run_cnn(pos)
-    tf.reset_default_graph()
-    return acc
 
+class ModelCreator:
+
+    def __init__(self, pos):
+
+        self.params = pos
+
+        print ('running the PSO for vector : ', pos)
+        
+        total_images_orig = np.load('600_normalized_data.npy')
+
+        # this is the labels for the above data images
+        total_labels_orig = np.load('600_normalized_labels.npy')
+
+        # todo taking 400 out of 600
+        self.total_images = total_images_orig[:399]
+        self.total_labels = total_labels_orig[:399]
+
+        """
+        with np.load('600_normalized_data.npy') as total_images_orig:
+        # todo taking 400 out of 600
+        total_images = total_images_orig[:399]
+
+        with np.load('600_normalized_labels.npy') as total_labels_orig:
+        # todo taking 400 out of 600
+        total_labels = total_labels_orig[:399]
+
+        """
+
+        # shuffle
+        self.total_images, self.total_labels = shuffle_in_unison(self.total_images, self.total_labels)
+
+
+    def execute(self):
+
+        acc = run_cnn(self.params, self.total_images, self,total_labels)
+        tf.reset_default_graph()
+        return acc
+
+
+"""
 if __name__ == '__main__':
 
   features_conv_layers = 16
@@ -309,6 +321,6 @@ if __name__ == '__main__':
     #print ('\niter is >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', i)
     accu = main_cnn(pos)
     print ('iter is >>>>>>>>>>>>>>> is finished, error is ', accu)
-
+"""
 
 
