@@ -1,3 +1,13 @@
+
+/*
+ * Author : Jaydev Kshirsagar
+ *
+ * The program in this file emits a re-mapping for pixel coordinates of an image
+ * such that the new image will have the pixels rotated in a spiral fashion
+ *
+ */
+
+
 #include <stdio.h>
 #include <math.h>
 

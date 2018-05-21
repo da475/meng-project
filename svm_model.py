@@ -1,4 +1,9 @@
 
+# Author : Jaydev Kshirsagar
+
+# The program in this file is an interface for making use of the Slack Support-Vector-Machine
+# It creates an SVM model with the given Hyper-Parameters and returns learning quality
+
 import numpy as np
 import os
 import sys

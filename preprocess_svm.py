@@ -1,4 +1,13 @@
-		
+
+# Author : Jaydev Kshirsagar
+
+# The program in the file is used for performing pre-processing on the
+# Image Data, so as to make it suitable for a Support-Vector-Machine to consume.
+# This pre-processing involves re-ordering the constituent pixels of the Image
+
+
+import numpy as np
+
 def pre_process_image_data(raw_image_data):
 	num_data_points, image_depth, image_width, image_height = raw_image_data.shape
 
