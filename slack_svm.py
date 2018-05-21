@@ -1,3 +1,10 @@
+
+# Author : Jaydev Kshirsagar
+
+# The program in this file is an implementation of a Soft Support-Vector-Machine
+# It exposes the functionality as a Python Class that can get the SVM trained and also
+# make it usable for testing.
+
 import numpy as np
 
 LEARN_RATE = 0.05

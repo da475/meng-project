@@ -1,4 +1,9 @@
 
+# Author : Jaydev Kshirsagar
+
+# The program in this file is a tester of the Sof Support-Vector-Machine Model
+# It creates a synthetic Data-Set for testing the SVM and checks if the Model works well
+
 import numpy as np
 
 from slack_svm import Slack_SVM
